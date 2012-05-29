@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.jdt.core.ICompilationUnit"
+            id="org.loveyoupeng.codegen.contribution1">
+         <menu
+               label="CodeGen"
+               path="additions"
+               id="org.loveyoupeng.codegen.menu1">
+            <separator
+                  name="group1">
+            </separator>
+         </menu>
+         <action
+               class="org.loveyoupeng.codegen.popup.actions.ProcessGeneratorAction"
+               enablesFor="1"
+               id="org.loveyoupeng.codegen.ProcesssGenAction"
+               label="ProcessGen"
+               menubarPath="org.loveyoupeng.codegen.menu1/group1">
+         </action>
+      </objectContribution>
+   </extension>
+
+</plugin>
