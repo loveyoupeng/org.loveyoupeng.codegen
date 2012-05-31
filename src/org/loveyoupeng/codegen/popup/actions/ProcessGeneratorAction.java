@@ -10,10 +10,14 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
@@ -120,6 +124,7 @@ public class ProcessGeneratorAction implements IObjectActionDelegate {
 
 			addImports(astRoot, importStat);
 
+			addMethod(astRoot);
 			// computation of the text edits
 			TextEdit edits = astRoot.rewrite(document, cu.getJavaProject()
 					.getOptions(true));
@@ -148,6 +153,23 @@ public class ProcessGeneratorAction implements IObjectActionDelegate {
 		}
 	}
 
+	private void addMethod(CompilationUnit astRoot) {
+		astRoot.accept(new ASTVisitor() {
+			private static final String METHOD = "public String greeting(String name){ return \"Hello \" + name;}";
+
+			@Override
+			public void endVisit(TypeDeclaration node) {
+				super.endVisit(node);
+				TypeDeclaration typeClass = parse(METHOD);
+				ASTNode methodDeclaration = ASTNode.copySubtree(node.getAST(),
+						(ASTNode) typeClass.bodyDeclarations().get(0));
+				node.bodyDeclarations().add(methodDeclaration);
+			}
+
+		});
+
+	}
+
 	@SuppressWarnings("unchecked")
 	private void addImports(CompilationUnit astRoot,
 			ImportDeclaration importStat) {
@@ -160,6 +182,14 @@ public class ProcessGeneratorAction implements IObjectActionDelegate {
 		parser.setSource(unit); // set source
 		parser.setResolveBindings(true); // we need bindings later on
 		return (CompilationUnit) parser.createAST(null /* IProgressMonitor */); // parse
+	}
+
+	private TypeDeclaration parse(String code) {
+		ASTParser parser = ASTParser.newParser(AST.JLS3);
+		parser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
+		parser.setSource(code.toCharArray()); // set source
+		parser.setResolveBindings(true); // we need bindings later on
+		return (TypeDeclaration) parser.createAST(null /* IProgressMonitor */); // parse
 	}
 
 	/**
